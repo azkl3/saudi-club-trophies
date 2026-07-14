@@ -1,0 +1,29 @@
+{
+  "name": "saudi-club-trophies",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vinext dev",
+    "build": "vinext build && mkdir -p dist/.openai && cp .openai/hosting.json dist/.openai/hosting.json",
+    "build:pages": "GITHUB_PAGES=true next build",
+    "start": "vinext start",
+    "lint": "tsc --noEmit"
+  },
+  "dependencies": {
+    "lucide-react": "1.24.0",
+    "next": "^16.2.10",
+    "react": "19.2.7",
+    "react-dom": "19.2.7",
+    "react-server-dom-webpack": "19.2.7",
+    "vinext": "1.0.0-beta.1"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-rsc": "0.5.27",
+    "@types/node": "^24.0.0",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "typescript": "^5.9.0",
+    "vite": "8.1.4"
+  }
+}
