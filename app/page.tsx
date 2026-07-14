@@ -24,7 +24,7 @@ import {
   Trophy,
   X,
 } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { archiveStats, clubs, competitionTotals, sources, type Club, type TrophyCategory, type TrophyKind } from "./data";
 
 const kindIcon: Record<TrophyKind, typeof Trophy> = {
@@ -51,15 +51,18 @@ function TrophyMark({ kind, small = false }: { kind: TrophyKind; small?: boolean
   );
 }
 
-function Monogram({ club, size = "normal" }: { club: Club; size?: "normal" | "large" | "small" }) {
+function ClubCrest({ club, size = "normal" }: { club: Club; size?: "normal" | "large" | "small" }) {
+  const [failed, setFailed] = useState(false);
+
   return (
     <span
-      className={`monogram monogram-${size}`}
+      className={`club-crest club-crest-${size}`}
       style={{ "--club": club.primary, "--club2": club.secondary, "--clubInk": club.ink } as React.CSSProperties}
-      aria-hidden="true"
+      title={`الشعار الرسمي لنادي ${club.name}`}
     >
-      <span>{club.short}</span>
-      <i />
+      {failed ? <span className="crest-fallback"><Shield /><b>{club.short}</b></span> : (
+        <img src={club.logo} alt={`شعار نادي ${club.name}`} referrerPolicy="no-referrer" onError={() => setFailed(true)} />
+      )}
     </span>
   );
 }
@@ -84,7 +87,7 @@ function ClubCard({ club, onOpen }: { club: Club; onOpen: (club: Club) => void }
       <span className="card-noise" />
       <span className="card-watermark">{club.short}</span>
       <span className="club-card-top">
-        <Monogram club={club} />
+        <ClubCrest club={club} />
         {club.rank ? <span className="rank">#{club.rank.toLocaleString("ar-SA")}</span> : <VerificationBadge compact />}
       </span>
       <span className="club-card-copy">
@@ -103,39 +106,85 @@ function ClubCard({ club, onOpen }: { club: Club; onOpen: (club: Club) => void }
   );
 }
 
-function CategoryCard({ category, index }: { category: TrophyCategory; index: number }) {
-  const [open, setOpen] = useState(index === 0);
-  const hasMore = Boolean(category.years?.length || category.note);
+function TrophyCabinet({ club }: { club: Club }) {
+  const detailed = club.categories.filter((item) => item.editions.length > 0);
+  const aggregates = club.categories.filter((item) => item.editions.length === 0);
+  const [activeIndex, setActiveIndex] = useState(0);
+
+  useEffect(() => setActiveIndex(0), [club.id]);
+  const active = detailed[Math.min(activeIndex, Math.max(detailed.length - 1, 0))];
+  if (!active) return null;
 
   return (
-    <article className={`category-card ${open ? "open" : ""}`}>
-      <button onClick={() => hasMore && setOpen((value) => !value)} aria-expanded={open}>
-        <TrophyMark kind={category.kind} />
-        <span className="category-name">
-          <small>{category.verifiedBy}</small>
-          <strong>{category.name}</strong>
-        </span>
-        <span className="category-count">
-          <b>{category.count.toLocaleString("ar-SA")}</b>
-          <small>لقب</small>
-        </span>
-        {hasMore ? (open ? <ChevronUp size={18} /> : <ChevronDown size={18} />) : <Check size={16} />}
-      </button>
-      {open && hasMore ? (
-        <div className="category-detail">
-          {category.years?.length ? (
-            <div className="year-chips" aria-label="سنوات مختارة من التتويج">
-              {category.years.map((year) => <span key={year}>{year}</span>)}
-            </div>
-          ) : null}
-          {category.note ? <p>{category.note}</p> : null}
+    <div className="museum-cabinet">
+      <div className="cabinet-tabs" role="tablist" aria-label="أقسام بطولات النادي">
+        {detailed.map((item, index) => (
+          <button
+            key={`${item.name}-${index}`}
+            className={index === activeIndex ? "active" : ""}
+            onClick={() => setActiveIndex(index)}
+            role="tab"
+            aria-selected={index === activeIndex}
+          >
+            <TrophyMark kind={item.kind} small />
+            <span><b>{item.name}</b><small>{item.count.toLocaleString("ar-SA")} ألقاب</small></span>
+          </button>
+        ))}
+      </div>
+
+      <section className="cabinet-room" role="tabpanel">
+        <header className="cabinet-room-head">
+          <div>
+            <span className="cabinet-label">الرف المختار</span>
+            <h4>{active.name}</h4>
+            <p>كل كأس أدناه يمثل نسخة مستقلة باسمها التاريخي وموسم التتويج.</p>
+          </div>
+          <span className="cabinet-count"><b>{active.count.toLocaleString("ar-SA")}</b><small>كأس موثق</small></span>
+        </header>
+
+        <div className="trophy-shelves">
+          {active.editions.map((edition, index) => (
+            <article className="trophy-case" key={`${edition.season}-${edition.title}-${index}`}>
+              <span className="case-glass" />
+              <div className="case-number">{String(index + 1).padStart(2, "0")}</div>
+              <TrophyMark kind={active.kind} />
+              <div className="trophy-plaque">
+                <time>{edition.season}</time>
+                <h5>{edition.title}</h5>
+                <span><Check size={11} /> {active.verifiedBy}</span>
+              </div>
+            </article>
+          ))}
+        </div>
+      </section>
+
+      {aggregates.length ? (
+        <div className="aggregate-records">
+          {aggregates.map((item) => (
+            <article key={item.name}>
+              <FileCheck2 />
+              <div><b>{item.count.toLocaleString("ar-SA")} لقبًا إضافيًا</b><p>{item.note}</p></div>
+              <span>راجع التقرير الرسمي</span>
+            </article>
+          ))}
         </div>
       ) : null}
-    </article>
+    </div>
   );
 }
 
 function ClubDrawer({ club, onClose }: { club: Club; onClose: () => void }) {
+  useEffect(() => {
+    const previous = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    const onKeyDown = (event: KeyboardEvent) => event.key === "Escape" && onClose();
+    window.addEventListener("keydown", onKeyDown);
+    return () => {
+      document.body.style.overflow = previous;
+      window.removeEventListener("keydown", onKeyDown);
+    };
+  }, [onClose]);
+
   return (
     <div className="drawer-backdrop" role="dialog" aria-modal="true" aria-label={`سجل نادي ${club.name}`} onMouseDown={onClose}>
       <article
@@ -155,7 +204,7 @@ function ClubDrawer({ club, onClose }: { club: Club; onClose: () => void }) {
             <h2>{club.name}</h2>
             <p>{club.tagline}</p>
           </div>
-          <Monogram club={club} size="large" />
+          <ClubCrest club={club} size="large" />
           <div className="drawer-totals">
             <span><b>{(club.officialTotal ?? club.majorTotal).toLocaleString("ar-SA")}</b><small>{club.officialTotal ? "إجمالي موثق" : "بطولات كبرى"}</small></span>
             <i />
@@ -179,12 +228,10 @@ function ClubDrawer({ club, onClose }: { club: Club; onClose: () => void }) {
 
           <section className="club-trophies">
             <div className="section-heading compact-heading">
-              <div><span className="eyebrow">خزانة النادي</span><h3>البطولات حسب المسابقة</h3></div>
+              <div><span className="eyebrow">خزانة النادي</span><h3>متحف الكؤوس موسمًا بموسم</h3></div>
               <span className="record-state"><FileCheck2 size={16} /> {club.fullRecord ? "الإجمالي مطابق للتقرير" : "سجل البطولات الكبرى"}</span>
             </div>
-            <div className="category-grid">
-              {club.categories.map((category, index) => <CategoryCard key={`${category.name}-${index}`} category={category} index={index} />)}
-            </div>
+            <TrophyCabinet club={club} />
           </section>
 
           <section className="timeline-section">
@@ -238,7 +285,7 @@ function Rankings() {
         {ranked.map((club) => (
           <div className="rank-row" key={club.id}>
             <span className="rank-number">{club.rank?.toLocaleString("ar-SA")}</span>
-            <Monogram club={club} size="small" />
+            <ClubCrest club={club} size="small" />
             <strong>{club.name}</strong>
             <span className="rank-bar"><i style={{ width: `${((club.officialTotal ?? 0) / max) * 100}%`, background: `linear-gradient(90deg, ${club.primary}, ${club.secondary})` }} /></span>
             <b>{club.officialTotal?.toLocaleString("ar-SA")}</b>
