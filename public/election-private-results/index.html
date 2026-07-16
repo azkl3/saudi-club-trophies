@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate, max-age=0">
+<meta name="theme-color" content="#080808">
+<title>انتخابات SL7 FC</title>
+<style>
+html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#080808}iframe{display:block;width:100%;height:100%;border:0;background:#080808}
+</style>
+</head>
+<body>
+<iframe id="election" title="انتخابات SL7 FC" src="../election-round2/?private-results=1"></iframe>
+<script>
+const frame=document.getElementById('election');
+function applyPrivateResults(){
+  try{
+    const doc=frame.contentDocument;
+    if(!doc)return;
+    const leader=doc.getElementById('leader');
+    const round=doc.getElementById('round');
+    if(leader&&leader.parentElement)leader.parentElement.style.display='none';
+    if(round&&round.parentElement)round.parentElement.style.display='none';
+    const stats=doc.querySelector('.stats');
+    if(stats){stats.style.display='flex';stats.style.justifyContent='flex-start'}
+    const heroText=doc.querySelector('.hero p');
+    if(heroText)heroText.textContent='التصويت سري، ولا تظهر اختيارات المصوّتين أو نتائج المرشحين للعامة. يظهر فقط إجمالي عدد الأصوات، بينما التفاصيل الكاملة متاحة للإدارة.';
+    const total=doc.getElementById('total');
+    if(total&&total.parentElement){
+      total.parentElement.style.fontSize='20px';
+      total.parentElement.style.padding='18px 24px';
+      total.parentElement.setAttribute('aria-label','إجمالي عدد الأصوات');
+    }
+  }catch(e){console.error(e)}
+}
+frame.addEventListener('load',()=>{
+  applyPrivateResults();
+  setTimeout(applyPrivateResults,300);
+  setTimeout(applyPrivateResults,1200);
+});
+setInterval(applyPrivateResults,3000);
+</script>
+</body>
+</html>
