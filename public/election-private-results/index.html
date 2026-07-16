@@ -11,46 +11,58 @@ html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#080808}ifr
 </style>
 </head>
 <body>
-<iframe id="election" title="انتخابات SL7 FC" src="../election-round2/?clean-secret=2"></iframe>
+<iframe id="election" title="انتخابات SL7 FC" src="../election-round2/?name-only-lock=4"></iframe>
 <script>
 const frame=document.getElementById('election');
 const emptyImage='data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=';
-function applyCleanSecretMode(){
+function applyMode(){
   try{
     const doc=frame.contentDocument;
     const win=frame.contentWindow;
     if(!doc||!win)return;
 
+    // النتائج مخفية بالكامل عن العامة.
     const stats=doc.querySelector('.stats');
     if(stats)stats.style.display='none';
-
     const heroText=doc.querySelector('.hero p');
     if(heroText)heroText.textContent='التصويت سري بالكامل. لا تظهر أعداد الأصوات أو المتصدر أو اختيارات المصوّتين للعامة، وتبقى التفاصيل متاحة للإدارة فقط.';
 
+    // إزالة التصوير مع إبقاء القَسَم.
     const selfie=doc.getElementById('selfie');
     if(selfie){
       const field=selfie.parentElement&&selfie.parentElement.parentElement&&selfie.parentElement.parentElement.parentElement;
       if(field)field.style.display='none';
     }
-
     const consent=doc.getElementById('consent');
     if(consent)consent.checked=true;
-
     try{win.eval(`photo='${emptyImage}'`)}catch(e){}
+    doc.querySelectorAll('table th:nth-child(2),table td:nth-child(2)').forEach(el=>el.style.display='none');
+
+    // إلغاء قيد المتصفح والجهاز نهائيًا. المنع يبقى على اسم المصوّت فقط.
+    Object.keys(win.localStorage).filter(k=>k.startsWith('sl7_')).forEach(k=>win.localStorage.removeItem(k));
+    win.locked=()=>false;
+    win.lock=()=>{};
+    win.device=async()=>{
+      const random=win.crypto&&win.crypto.randomUUID?win.crypto.randomUUID():Date.now()+'-'+Math.random();
+      return 'vote-'+random;
+    };
+
+    const submit=doc.getElementById('submit');
+    if(submit){submit.disabled=false;submit.textContent='اعتماد التصويت'}
+    const msg=doc.getElementById('msg');
+    if(msg&&msg.textContent.includes('الجهاز')){msg.textContent='';msg.className='msg'}
 
     const note=doc.querySelector('.adminNote');
-    if(note)note.innerHTML='النتائج والتفاصيل سرية ولا تظهر للعامة. يمكنك من هنا مراجعة أسماء المصوّتين واختياراتهم وفتح جولة جديدة عند الحاجة.';
-
-    doc.querySelectorAll('table th:nth-child(2),table td:nth-child(2)').forEach(el=>el.style.display='none');
+    if(note)note.innerHTML='التصويت مقيد باسم المصوّت فقط: كل اسم من الأسماء الثمانية يملك صوتًا واحدًا في الجولة الحالية. يمكن استخدام الجوال نفسه لجميع الأسماء.';
   }catch(e){console.error(e)}
 }
 frame.addEventListener('load',()=>{
-  applyCleanSecretMode();
-  setTimeout(applyCleanSecretMode,250);
-  setTimeout(applyCleanSecretMode,900);
-  setTimeout(applyCleanSecretMode,1800);
+  applyMode();
+  setTimeout(applyMode,150);
+  setTimeout(applyMode,600);
+  setTimeout(applyMode,1500);
 });
-setInterval(applyCleanSecretMode,2000);
+setInterval(applyMode,1500);
 </script>
 </body>
 </html>
