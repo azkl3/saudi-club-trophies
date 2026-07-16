@@ -11,35 +11,46 @@ html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#080808}ifr
 </style>
 </head>
 <body>
-<iframe id="election" title="انتخابات SL7 FC" src="../election-round2/?private-results=1"></iframe>
+<iframe id="election" title="انتخابات SL7 FC" src="../election-round2/?clean-secret=2"></iframe>
 <script>
 const frame=document.getElementById('election');
-function applyPrivateResults(){
+const emptyImage='data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=';
+function applyCleanSecretMode(){
   try{
     const doc=frame.contentDocument;
-    if(!doc)return;
-    const leader=doc.getElementById('leader');
-    const round=doc.getElementById('round');
-    if(leader&&leader.parentElement)leader.parentElement.style.display='none';
-    if(round&&round.parentElement)round.parentElement.style.display='none';
+    const win=frame.contentWindow;
+    if(!doc||!win)return;
+
     const stats=doc.querySelector('.stats');
-    if(stats){stats.style.display='flex';stats.style.justifyContent='flex-start'}
+    if(stats)stats.style.display='none';
+
     const heroText=doc.querySelector('.hero p');
-    if(heroText)heroText.textContent='التصويت سري، ولا تظهر اختيارات المصوّتين أو نتائج المرشحين للعامة. يظهر فقط إجمالي عدد الأصوات، بينما التفاصيل الكاملة متاحة للإدارة.';
-    const total=doc.getElementById('total');
-    if(total&&total.parentElement){
-      total.parentElement.style.fontSize='20px';
-      total.parentElement.style.padding='18px 24px';
-      total.parentElement.setAttribute('aria-label','إجمالي عدد الأصوات');
+    if(heroText)heroText.textContent='التصويت سري بالكامل. لا تظهر أعداد الأصوات أو المتصدر أو اختيارات المصوّتين للعامة، وتبقى التفاصيل متاحة للإدارة فقط.';
+
+    const selfie=doc.getElementById('selfie');
+    if(selfie){
+      const field=selfie.parentElement&&selfie.parentElement.parentElement&&selfie.parentElement.parentElement.parentElement;
+      if(field)field.style.display='none';
     }
+
+    const consent=doc.getElementById('consent');
+    if(consent)consent.checked=true;
+
+    try{win.eval(`photo='${emptyImage}'`)}catch(e){}
+
+    const note=doc.querySelector('.adminNote');
+    if(note)note.innerHTML='النتائج والتفاصيل سرية ولا تظهر للعامة. يمكنك من هنا مراجعة أسماء المصوّتين واختياراتهم وفتح جولة جديدة عند الحاجة.';
+
+    doc.querySelectorAll('table th:nth-child(2),table td:nth-child(2)').forEach(el=>el.style.display='none');
   }catch(e){console.error(e)}
 }
 frame.addEventListener('load',()=>{
-  applyPrivateResults();
-  setTimeout(applyPrivateResults,300);
-  setTimeout(applyPrivateResults,1200);
+  applyCleanSecretMode();
+  setTimeout(applyCleanSecretMode,250);
+  setTimeout(applyCleanSecretMode,900);
+  setTimeout(applyCleanSecretMode,1800);
 });
-setInterval(applyPrivateResults,3000);
+setInterval(applyCleanSecretMode,2000);
 </script>
 </body>
 </html>
