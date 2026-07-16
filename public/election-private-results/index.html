@@ -6,28 +6,26 @@
 <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate, max-age=0">
 <meta name="theme-color" content="#080808">
 <title>انتخابات SL7 FC</title>
-<style>
-html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#080808}iframe{display:block;width:100%;height:100%;border:0;background:#080808}
-</style>
+<style>html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#080808}iframe{display:block;width:100%;height:100%;border:0;background:#080808}</style>
 </head>
 <body>
-<iframe id="election" title="انتخابات SL7 FC" src="../election-round2/?name-only-lock=4"></iframe>
+<iframe id="election" title="انتخابات SL7 FC" src="../election-round2/?secure-vote=5"></iframe>
 <script>
 const frame=document.getElementById('election');
 const emptyImage='data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=';
-function applyMode(){
+function applySecureMode(){
   try{
     const doc=frame.contentDocument;
     const win=frame.contentWindow;
     if(!doc||!win)return;
 
-    // النتائج مخفية بالكامل عن العامة.
+    // إخفاء النتائج بالكامل عن العامة.
     const stats=doc.querySelector('.stats');
     if(stats)stats.style.display='none';
     const heroText=doc.querySelector('.hero p');
-    if(heroText)heroText.textContent='التصويت سري بالكامل. لا تظهر أعداد الأصوات أو المتصدر أو اختيارات المصوّتين للعامة، وتبقى التفاصيل متاحة للإدارة فقط.';
+    if(heroText)heroText.textContent='التصويت سري بالكامل. لكل اسم محاولة واحدة، ولكل جهاز أو متصفح محاولة واحدة في الجولة الحالية. التفاصيل متاحة للإدارة فقط.';
 
-    // إزالة التصوير مع إبقاء القَسَم.
+    // إزالة التصوير مع إبقاء القَسَم إلزاميًا.
     const selfie=doc.getElementById('selfie');
     if(selfie){
       const field=selfie.parentElement&&selfie.parentElement.parentElement&&selfie.parentElement.parentElement.parentElement;
@@ -38,31 +36,46 @@ function applyMode(){
     try{win.eval(`photo='${emptyImage}'`)}catch(e){}
     doc.querySelectorAll('table th:nth-child(2),table td:nth-child(2)').forEach(el=>el.style.display='none');
 
-    // إلغاء قيد المتصفح والجهاز نهائيًا. المنع يبقى على اسم المصوّت فقط.
+    // لا نعتمد على قفل LocalStorage القديم حتى لا يظل عالقًا بعد فتح جولة جديدة.
+    // قاعدة البيانات هي التي تمنع الاسم المكرر وبصمة الجهاز/المتصفح المكررة في الجولة الحالية.
     Object.keys(win.localStorage).filter(k=>k.startsWith('sl7_')).forEach(k=>win.localStorage.removeItem(k));
     win.locked=()=>false;
-    win.lock=()=>{};
+
+    // بصمة ثابتة للجهاز/المتصفح بدل الرمز العشوائي.
     win.device=async()=>{
-      const random=win.crypto&&win.crypto.randomUUID?win.crypto.randomUUID():Date.now()+'-'+Math.random();
-      return 'vote-'+random;
+      const raw=[
+        win.navigator.userAgent,
+        win.navigator.language,
+        win.screen.width,
+        win.screen.height,
+        win.screen.colorDepth,
+        win.navigator.maxTouchPoints||0,
+        Intl.DateTimeFormat().resolvedOptions().timeZone
+      ].join('|');
+      const buf=await win.crypto.subtle.digest('SHA-256',new TextEncoder().encode(raw));
+      return [...new Uint8Array(buf)].map(b=>b.toString(16).padStart(2,'0')).join('');
+    };
+
+    // بعد نجاح التصويت يقفل الزر داخل الجلسة، وعند إعادة التحميل تتولى قاعدة البيانات التحقق.
+    win.lock=()=>{
+      const submit=doc.getElementById('submit');
+      if(submit){submit.disabled=true;submit.textContent='تم استخدام محاولة هذا الجهاز'}
     };
 
     const submit=doc.getElementById('submit');
-    if(submit){submit.disabled=false;submit.textContent='اعتماد التصويت'}
-    const msg=doc.getElementById('msg');
-    if(msg&&msg.textContent.includes('الجهاز')){msg.textContent='';msg.className='msg'}
+    if(submit&&!submit.textContent.includes('تم استخدام')){submit.disabled=false;submit.textContent='اعتماد التصويت'}
 
     const note=doc.querySelector('.adminNote');
-    if(note)note.innerHTML='التصويت مقيد باسم المصوّت فقط: كل اسم من الأسماء الثمانية يملك صوتًا واحدًا في الجولة الحالية. يمكن استخدام الجوال نفسه لجميع الأسماء.';
+    if(note)note.innerHTML='كل اسم من الأسماء الثمانية يملك صوتًا واحدًا، وكل جهاز أو متصفح يملك محاولة واحدة في الجولة الحالية. افتح جولة جديدة لإعادة المحاولات للجميع.';
   }catch(e){console.error(e)}
 }
 frame.addEventListener('load',()=>{
-  applyMode();
-  setTimeout(applyMode,150);
-  setTimeout(applyMode,600);
-  setTimeout(applyMode,1500);
+  applySecureMode();
+  setTimeout(applySecureMode,150);
+  setTimeout(applySecureMode,700);
+  setTimeout(applySecureMode,1600);
 });
-setInterval(applyMode,1500);
+setInterval(applySecureMode,1600);
 </script>
 </body>
 </html>
