@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#080808">
+<title>إعادة فتح تصويت SL7 FC</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;800;900&display=swap');
+*{box-sizing:border-box}body{margin:0;min-height:100vh;display:grid;place-items:center;background:radial-gradient(circle at 20% 0,#f1c23222,transparent 35%),#080808;color:#fff;font-family:Tajawal,Arial,sans-serif;padding:20px}.box{width:min(560px,100%);background:#111;border:1px solid #f1c23255;border-radius:24px;padding:28px;box-shadow:0 20px 60px #0009}.logo{font-size:30px;font-weight:900;color:#ffd966}.box h1{font-size:34px;margin:14px 0 8px}.box p{color:#bbb;line-height:1.8}label{display:block;margin:22px 0 8px;color:#ddd;font-weight:700}input{width:100%;padding:15px;border-radius:13px;border:1px solid #f1c23255;background:#090909;color:#fff;font:inherit}button{width:100%;margin-top:14px;padding:15px;border:0;border-radius:14px;background:linear-gradient(135deg,#ffd966,#f1c232);color:#111;font:inherit;font-weight:900;cursor:pointer}button:disabled{opacity:.55;cursor:not-allowed}.msg{display:none;margin-top:15px;padding:13px;border-radius:12px;line-height:1.7}.msg.show{display:block}.ok{background:#173d2d;color:#a6efd0}.bad{background:#421c1c;color:#ffb5b5}.small{font-size:13px;color:#999;margin-top:14px}
+</style>
+</head>
+<body>
+<div class="box">
+  <div class="logo">SL7 FC</div>
+  <h1>إعادة فتح التصويت</h1>
+  <p>هذا الزر يفتح جولة جديدة في قاعدة البيانات، ويعيد محاولة واحدة لكل اسم ولكل جهاز، مع بقاء الجولة السابقة محفوظة في الأرشيف.</p>
+  <label for="pin">الرقم السري للإدارة</label>
+  <input id="pin" type="password" inputmode="numeric" placeholder="أدخل الرقم السري">
+  <button id="btn" onclick="openRound()">فتح جولة جديدة وإعادة المحاولات</button>
+  <div id="msg" class="msg"></div>
+  <div class="small">بعد النجاح سيتم تحويلك تلقائيًا إلى صفحة الانتخابات.</div>
+</div>
+<script>
+const U='https://nvgnzjuxouytuqncufbf.supabase.co';
+const K='sb_'+'publishable_'+'X_T_'+'wq2fpSWeOBkAqPSNNg_'+'raFwtLDx';
+const $=id=>document.getElementById(id);
+function show(text,type){const m=$('msg');m.textContent=text;m.className='msg show '+type}
+async function rpc(fn,args={}){const r=await fetch(`${U}/rest/v1/rpc/${fn}`,{method:'POST',headers:{apikey:K,'Content-Type':'application/json'},body:JSON.stringify(args)});const raw=await r.text();let data;try{data=raw?JSON.parse(raw):null}catch{data=raw}if(!r.ok)throw new Error(data?.message||data?.hint||'تعذر الاتصال بقاعدة البيانات');return data}
+async function openRound(){const pin=$('pin').value.trim(),btn=$('btn');if(!pin)return show('أدخل الرقم السري أولًا.','bad');btn.disabled=true;btn.textContent='جاري فتح الجولة الجديدة...';try{const round=await rpc('sl7_start_new_round',{p_pin:pin});Object.keys(localStorage).filter(k=>k.startsWith('sl7_')).forEach(k=>localStorage.removeItem(k));show('تم فتح جولة جديدة بنجاح. عادت محاولة واحدة لكل اسم ولكل جهاز.','ok');setTimeout(()=>location.replace('../election/?v='+Date.now()),1400)}catch(e){show(e.message.includes('الرقم')?'الرقم السري غير صحيح.':e.message,'bad');btn.disabled=false;btn.textContent='فتح جولة جديدة وإعادة المحاولات'}}
+</script>
+</body>
+</html>
