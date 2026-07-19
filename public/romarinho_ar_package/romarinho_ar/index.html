@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>جرّب لوحة رومارينهو على جدارك</title>
+  <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/4.3.1/model-viewer.min.js"></script>
+  <style>
+    :root { font-family: system-ui, -apple-system, "Segoe UI", sans-serif; background:#0d0d0d; color:#fff; }
+    * { box-sizing:border-box; }
+    body { margin:0; min-height:100vh; display:grid; place-items:center; padding:18px; }
+    .card { width:min(760px,100%); background:#171717; border:1px solid #333; border-radius:22px; overflow:hidden; box-shadow:0 20px 60px rgba(0,0,0,.35); }
+    header { padding:20px 20px 12px; }
+    h1 { font-size:22px; margin:0 0 6px; }
+    p { color:#c8c8c8; margin:0; line-height:1.7; }
+    .controls { display:grid; grid-template-columns:1fr 1fr; gap:10px; padding:12px 20px 18px; }
+    label { display:grid; gap:6px; font-size:14px; color:#ddd; }
+    select { width:100%; padding:12px; border-radius:12px; border:1px solid #444; background:#222; color:#fff; font-size:16px; }
+    model-viewer { width:100%; height:min(65vh,620px); background:#efefef; }
+    #ar-button { border:0; border-radius:999px; padding:14px 22px; font-weight:800; font-size:16px; background:#f2c230; color:#111; box-shadow:0 8px 24px rgba(0,0,0,.25); position:absolute; bottom:18px; left:50%; transform:translateX(-50%); white-space:nowrap; }
+    .note { font-size:12px; padding:12px 20px 20px; color:#aaa; }
+  </style>
+</head>
+<body>
+  <main class="card">
+    <header>
+      <h1>جرّب لوحة رومارينهو على جدارك</h1>
+      <p>اختر المقاس ولون الإطار، ثم افتح الكاميرا. الحجم ثابت بالمقاس الحقيقي.</p>
+    </header>
+    <section class="controls">
+      <label>المقاس<select id="size"><option value="21x30">21x30 سم</option>
+<option value="30x40">30x40 سم</option>
+<option value="40x50">40x50 سم</option></select></label>
+      <label>لون الإطار<select id="color"><option value="black">أسود</option>
+<option value="white">أبيض</option>
+<option value="wood">خشبي فاتح</option></select></label>
+    </section>
+    <model-viewer id="viewer"
+      src="models/romarinho_21x30_black.glb"
+      alt="لوحة رومارينهو بإطار"
+      camera-controls
+      shadow-intensity="1"
+      exposure="1"
+      ar
+      ar-modes="webxr scene-viewer quick-look"
+      ar-placement="wall"
+      ar-scale="fixed"
+      interaction-prompt="auto">
+      <button slot="ar-button" id="ar-button">شاهدها على جدارك</button>
+    </model-viewer>
+    <div class="note">المقاسات الخارجية للنموذج: 21×30، 30×40، 40×50 سم. قد يختلف الإحساس بالحجم قليلًا حسب معايرة الكاميرا ومسافة التصوير.</div>
+  </main>
+  <script>
+    const viewer = document.querySelector('#viewer');
+    const size = document.querySelector('#size');
+    const color = document.querySelector('#color');
+    function update() {
+      viewer.src = `models/romarinho_${size.value}_${color.value}.glb`;
+    }
+    size.addEventListener('change', update);
+    color.addEventListener('change', update);
+  </script>
+</body>
+</html>
