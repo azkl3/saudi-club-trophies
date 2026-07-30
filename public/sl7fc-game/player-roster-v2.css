@@ -1,0 +1,14 @@
+.player-photo-wrap{position:relative;overflow:hidden;background:linear-gradient(145deg,#174a39,#061712)}
+.player-photo,.player-avatar-mini{display:block;width:100%;height:100%;object-fit:cover;object-position:center 18%;transition:opacity .25s ease,transform .3s ease}
+.player-photo:not(.face-loaded),.player-avatar-mini:not(.face-loaded){object-position:center}
+.player-tile.with-photo:hover .player-photo{transform:scale(1.035)}
+.pitch-player .shirt.has-avatar{overflow:visible;background:#08251c;padding:2px;border:2px solid #e2c574;box-shadow:0 6px 18px rgba(0,0,0,.36)}
+.pitch-player .shirt.has-avatar .player-avatar-mini{width:100%;height:100%;border-radius:50%;background:#08251c}
+.pitch-player .shirt.has-avatar .mini-rating{z-index:4}
+.roster-pool-card{margin:24px 0 8px}
+.position-pool-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px;margin-top:14px}
+.position-pool-grid>div{display:flex;align-items:center;justify-content:center;gap:7px;min-height:54px;border:1px solid rgba(216,186,108,.2);border-radius:13px;background:rgba(9,39,30,.78)}
+.position-pool-grid b{font-size:20px;color:#e3c778}
+.position-pool-grid span{font-size:11px;font-weight:900;color:#fff;letter-spacing:.5px}
+.pool-note{display:block;margin-top:12px;color:rgba(255,255,255,.55);line-height:1.7}
+@media(max-width:720px){.position-pool-grid{grid-template-columns:repeat(3,minmax(0,1fr))}.position-pool-grid>div{min-height:48px}.position-pool-grid b{font-size:17px}}
