@@ -1,9 +1,6 @@
 name: Add SL7 match progress card
 
-on:
-  push:
-    paths:
-      - .github/workflows/add-sl7-match-progress-card.yml
+on: push
 
 permissions:
   contents: write
