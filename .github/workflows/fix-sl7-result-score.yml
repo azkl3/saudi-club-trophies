@@ -1,0 +1,39 @@
+name: Fix SL7 result score display
+
+on:
+  push:
+    paths:
+      - .github/workflows/fix-sl7-result-score.yml
+
+permissions:
+  contents: write
+
+jobs:
+  fix-score-display:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Fix score order on RTL result screen
+        shell: python
+        run: |
+          from pathlib import Path
+
+          path = Path("public/sl7fc-game/app.js")
+          source = path.read_text(encoding="utf-8")
+          old = "<strong>${m.gf}<i>:</i>${m.ga}</strong>"
+          new = "<strong>${m.ga}<i>:</i>${m.gf}</strong>"
+
+          if old not in source:
+              raise SystemExit("Expected result score template was not found; no file was changed.")
+
+          path.write_text(source.replace(old, new, 1), encoding="utf-8")
+
+      - name: Commit the fix
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add public/sl7fc-game/app.js
+          git commit -m "Fix reversed score display on SL7 result screen"
+          git push
