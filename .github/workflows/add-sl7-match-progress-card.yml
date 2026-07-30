@@ -1,0 +1,66 @@
+name: Add SL7 match progress card
+
+on:
+  push:
+    paths:
+      - .github/workflows/add-sl7-match-progress-card.yml
+
+permissions:
+  contents: write
+
+jobs:
+  add-progress-card:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Add league and promotion status card
+        shell: python
+        run: |
+          from pathlib import Path
+
+          app_path = Path("public/sl7fc-game/app.js")
+          css_path = Path("public/sl7fc-game/styles.css")
+          source = app_path.read_text(encoding="utf-8")
+          css = css_path.read_text(encoding="utf-8")
+
+          marker = "function prematch(){"
+          if "function matchStatusCard(){" not in source:
+              helper = r'''function chanceDots(total,used){return`<div class="chance-dots">${Array.from({length:total},(_,i)=>`<i class="${i<used?'lost':'available'}"></i>`).join('')}</div>`}
+function matchStatusCard(){const d=DIVISIONS[state.division],next=state.division===1?'elite':state.division-1,route=`<div class="status-route">${shieldSvg(state.division,'sm')}<span class="status-arrow">➜</span>${shieldSvg(next,'sm')}</div>`;if(state.phase==='playoff'){const remaining=Math.max(0,d.pGames-state.playoffGames),winsNeeded=Math.max(0,d.pWins-state.playoffWins);return`<article class="match-status-card promotion">${route}<div class="status-copy"><strong>PROMOTION MATCH</strong><span>المباريات المتبقية: <b>${remaining}</b></span><span>الانتصارات المتبقية للصعود: <b>${winsNeeded}</b></span></div></article>`}const chances=Number.isFinite(d.maxLosses)?chanceDots(d.maxLosses,state.losses):`<span class="unlimited-chances">∞</span>`;return`<article class="match-status-card league">${route}<div class="status-copy"><strong>LEAGUE MATCH</strong><span><b>${state.points}/${d.points}</b> نقاط</span><div class="status-chances"><span>الفرص:</span>${chances}</div></div></article>`}
+'''
+              if marker not in source:
+                  raise SystemExit("prematch function marker not found")
+              source = source.replace(marker, helper + marker, 1)
+
+          old = "${shieldSvg(state.division,'md')}</div><div class=\"prematch-grid\">"
+          new = "${shieldSvg(state.division,'md')}</div>${matchStatusCard()}<div class=\"prematch-grid\">"
+          if "${matchStatusCard()}<div class=\"prematch-grid\">" not in source:
+              if old not in source:
+                  raise SystemExit("prematch grid insertion point not found")
+              source = source.replace(old, new, 1)
+
+          styles = r'''
+
+/* Match progress card — league points, remaining chances and promotion status */
+.match-status-card{width:min(390px,100%);margin:0 auto 14px;display:flex;align-items:center;justify-content:center;gap:16px;padding:11px 15px;border:1px solid rgba(209,178,104,.25);border-radius:16px;background:linear-gradient(145deg,rgba(8,18,20,.96),rgba(3,10,10,.97));box-shadow:0 14px 34px rgba(0,0,0,.32);position:relative;overflow:hidden}
+.match-status-card:before{content:"";position:absolute;inset:0;background:linear-gradient(120deg,rgba(36,238,186,.05),transparent 45%);pointer-events:none}
+.match-status-card.promotion{border-color:rgba(46,242,168,.36);background:linear-gradient(145deg,rgba(8,24,22,.97),rgba(3,10,10,.98))}
+.status-route,.status-copy{position:relative;z-index:1}.status-route{direction:ltr;display:flex;align-items:center;gap:3px;flex:0 0 auto}.status-route .division-shield.sm{width:45px;height:54px}.status-arrow{color:#2ef2a8;font-size:21px;font-weight:900;line-height:1;text-shadow:0 0 12px rgba(46,242,168,.5)}
+.status-copy{min-width:185px;text-align:right;direction:rtl}.status-copy strong{display:block;direction:ltr;text-align:left;color:#f7f8f6;font-size:14px;letter-spacing:.55px;margin-bottom:4px}.status-copy>span{display:block;color:#aebcb7;font-size:11px;line-height:1.65}.status-copy b{color:#2ee8b1;font-size:12px}.status-chances{display:flex;align-items:center;justify-content:flex-start;gap:7px;color:#aebcb7;font-size:11px}.chance-dots{direction:ltr;display:flex;align-items:center;gap:5px}.chance-dots i{display:block;width:11px;height:11px;border-radius:50%;border:1px solid rgba(255,255,255,.16)}.chance-dots i.available{background:#22e7f5;border-color:#7af4ff;box-shadow:0 0 8px rgba(34,231,245,.65)}.chance-dots i.lost{background:#d94f5d;border-color:#ff8b94;box-shadow:0 0 7px rgba(217,79,93,.42)}.unlimited-chances{display:inline-grid;place-items:center;width:24px;height:18px;border-radius:999px;background:rgba(34,231,245,.12);border:1px solid rgba(34,231,245,.35);color:#54f3ff;font-size:15px;font-weight:900}
+@media(max-width:600px){.match-status-card{width:100%;gap:10px;padding:10px 11px}.status-route .division-shield.sm{width:40px;height:48px}.status-arrow{font-size:18px}.status-copy{min-width:0;flex:1}.status-copy strong{font-size:12px}.status-copy>span,.status-chances{font-size:10px}}
+'''
+          if "/* Match progress card" not in css:
+              css += styles
+
+          app_path.write_text(source, encoding="utf-8")
+          css_path.write_text(css, encoding="utf-8")
+
+      - name: Commit the feature
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add public/sl7fc-game/app.js public/sl7fc-game/styles.css
+          git commit -m "Show division points and chances before SL7 matches"
+          git push
