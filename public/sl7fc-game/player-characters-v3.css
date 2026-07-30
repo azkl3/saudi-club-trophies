@@ -1,0 +1,29 @@
+/* SL7 FC character edition — 15 players per position */
+.roster-pool-card{display:none!important}
+.character-edition{overflow:hidden;position:relative}
+.character-edition:after{content:"CHARACTER";position:absolute;top:12px;left:12px;font-size:8px;letter-spacing:1.7px;color:#e6c978;background:rgba(5,18,14,.78);border:1px solid rgba(211,181,108,.35);border-radius:999px;padding:5px 8px;z-index:4}
+.character-photo{object-fit:cover!important;object-position:center top!important;background:#071712}
+.character-shirt{overflow:hidden!important;background:#0d3d30!important;border:2px solid rgba(229,200,121,.8)!important}
+.character-shirt .player-avatar-mini{width:100%;height:100%;object-fit:cover;display:block}
+.character-library{margin-top:26px;padding:22px;overflow:hidden}
+.character-library .section-head.big{align-items:center;margin-bottom:14px}
+.character-library .section-head.big p{margin:5px 0 0;color:var(--muted,#9cb0a7);font-size:13px}
+.pool-total{display:grid;place-items:center;width:70px;height:70px;border-radius:50%;font-weight:1000;font-size:24px;color:#f0d58f;background:radial-gradient(circle at 35% 30%,#235844,#071711 75%);border:1px solid rgba(230,201,122,.45);box-shadow:0 0 36px rgba(202,168,84,.14)}
+.pool-tabs{display:grid;grid-template-columns:repeat(10,minmax(62px,1fr));gap:8px;overflow-x:auto;padding:8px 0 14px;scrollbar-width:none}
+.pool-tabs::-webkit-scrollbar{display:none}
+.pool-tab{min-width:62px;border:1px solid rgba(255,255,255,.09);background:#0b1915;color:#a8bbb2;border-radius:13px;padding:10px 7px;cursor:pointer;transition:.2s}
+.pool-tab b{display:block;font-size:14px;color:#fff}.pool-tab small{display:block;margin-top:3px;color:#7f968c}
+.pool-tab.active{color:#edd28a;border-color:rgba(222,189,103,.65);background:linear-gradient(145deg,#174535,#0b211a);transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,0,0,.25)}
+.pool-tab.active b,.pool-tab.active small{color:#edd28a}
+.character-pool-grid{display:none;grid-template-columns:repeat(5,minmax(0,1fr));gap:13px}
+.character-pool-grid.active{display:grid}
+.character-pool-player{position:relative;min-width:0;background:linear-gradient(160deg,rgba(24,67,52,.88),rgba(5,16,12,.98));border:1px solid rgba(226,194,110,.18);border-radius:18px;overflow:hidden;box-shadow:0 14px 32px rgba(0,0,0,.22);transition:.2s}
+.character-pool-player:hover{transform:translateY(-3px);border-color:rgba(226,194,110,.44)}
+.character-pool-player img{display:block;width:100%;aspect-ratio:3/4;object-fit:cover;background:#081611}
+.character-pool-player>div:last-child{padding:12px 12px 14px;min-height:79px}
+.character-pool-player b{display:block;color:#fff;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.character-pool-player span{display:block;color:#ddbd69;font-size:11px;margin-top:4px}.character-pool-player small{display:block;color:#81978d;font-size:10px;margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pool-rank{position:absolute!important;top:9px;right:9px!important;z-index:2!important;padding:5px 7px!important;min-height:0!important;border-radius:8px!important;background:rgba(2,12,9,.75)!important;border:1px solid rgba(232,204,130,.3)!important;color:#e7cb7d!important;font-size:10px!important;font-weight:900!important;backdrop-filter:blur(6px)}
+.pool-disclaimer{margin-top:15px;padding:12px 14px;border-radius:12px;background:rgba(211,181,108,.07);border:1px solid rgba(211,181,108,.14);color:#a6b7af;font-size:11px;text-align:center}
+@media(max-width:900px){.character-pool-grid{grid-template-columns:repeat(3,minmax(0,1fr))}.pool-tabs{grid-template-columns:repeat(10,68px)}}
+@media(max-width:560px){.character-library{padding:15px;margin-inline:-2px}.character-library .section-head.big{display:flex}.character-library .section-head.big h2{font-size:20px}.character-library .section-head.big p{font-size:11px}.pool-total{width:54px;height:54px;font-size:19px;flex:0 0 auto}.character-pool-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}.character-pool-player>div:last-child{padding:10px;min-height:72px}.character-pool-player b{font-size:12px}.pool-tabs{margin-inline:-4px;padding-inline:4px}}
